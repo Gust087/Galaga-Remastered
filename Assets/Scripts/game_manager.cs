@@ -14,7 +14,6 @@ public class game_manager : MonoBehaviour
 
     private IEnumerator coroutine;
     private AudioSource audio_src;
-    private Vector2 destination;
 
     int enemy_alive = 0;
     int enemy_spawns = 5;
@@ -200,7 +199,7 @@ public class game_manager : MonoBehaviour
             pos_y--;
         }
         pos_x--;
-        return destination = new Vector2(pos_x, pos_y);
+        return new Vector2(pos_x, pos_y);
 
     }
 
