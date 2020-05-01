@@ -93,8 +93,6 @@ public class enemies : MonoBehaviour {
             nav_pos = new Vector2(Random.Range(-game_manager.camera_width(), game_manager.camera_width()), -5);
         }
         destination = nav_pos;
-
-        Debug.Log("Kamikze OK" + destination.ToString());
     }
 
     void Instantiate_pos()
@@ -103,16 +101,12 @@ public class enemies : MonoBehaviour {
         current_position.y = pos_y;
         current_position.x = Random.Range(0, game_manager.camera_width());
         transform.position = current_position;
-
-        Debug.Log("Instantate_pos OK" + current_position.ToString());
     }
 
     public virtual void Choose_destination()
     {
         destination = new Vector2(Random.Range(-game_manager.camera_width(), game_manager.camera_width()), Random.Range(-game_manager.camera_height(), game_manager.camera_height()));
         nav_pos = new Vector2(Random.Range(-game_manager.camera_width(), game_manager.camera_width()), -5);
-
-        Debug.Log("choose destination OK: " + nav_pos.ToString());
     }
 
 }

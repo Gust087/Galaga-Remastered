@@ -89,7 +89,7 @@ public class player_controller : MonoBehaviour {
             game_manager.Get_points();
         }
 
-        game_manager.Lose_live();
+        game_manager.Lose_live(collision.gameObject.transform.position);
 
         gameObject.GetComponent<CircleCollider2D>().enabled = false;
         collision.gameObject.SetActive(false);

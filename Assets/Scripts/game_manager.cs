@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.Analytics;
 
 public class game_manager : MonoBehaviour
 {
@@ -15,6 +16,7 @@ public class game_manager : MonoBehaviour
 
     private IEnumerator coroutine;
     private AudioSource audio_src;
+    private Dictionary<string, object> parameters = new Dictionary<string, object>();
 
     int enemy_alive = 0;
     int enemy_spawns = 5;
@@ -26,6 +28,7 @@ public class game_manager : MonoBehaviour
     const int next_round_spawn = 5;
 
     float next_spawn = 5;
+    float secondsElapsed = 0;
     float diff = 1f, next_lvl_diff = 0.1f;
     float interval_spawn_max = 3, interval_spawn_min = 2;
     float time_count = 0;
@@ -57,12 +60,23 @@ public class game_manager : MonoBehaviour
         StartCoroutine(coroutine);
 
         Refresh_ui();
+
+        parameters.Add("seconds_played", 0);
+        parameters.Add("points", 0);
+        parameters.Add("deaths", 0);
+        parameters.Add("world_x", 0);
+        parameters.Add("world_y", 0);
+        parameters.Add("world_z", 0);
+
+        AnalyticsEvent.LevelStart("level" + instance.lvl.ToString(), parameters);
     }
 
 
 
     private void Update()
     {
+        instance.secondsElapsed += Time.deltaTime;
+
         if (enemy_spawns > 0)
         {
             if (next_spawn > 0)
@@ -80,9 +94,22 @@ public class game_manager : MonoBehaviour
         {
             next_load = true;
             instance.lvl++;
+            instance.update_parameters(new Vector3(0.0f, 0.0f, 0.0f));
+            AnalyticsEvent.LevelUp("level" + instance.lvl.ToString(), instance.parameters);
+
             instance.coroutine = instance.Load_Next_Level();
             instance.StartCoroutine(coroutine);
         }
+    }
+
+    void update_parameters(Vector3 position)
+    {
+        instance.parameters["seconds_played"] = instance.secondsElapsed;
+        instance.parameters["points"] = instance.points;
+        instance.parameters["deaths"] = 3 - instance.Lives;
+        instance.parameters["world_x"] = position.x;
+        instance.parameters["world_y"] = position.y;
+        instance.parameters["world_z"] = position.z;
     }
 
     void Spawn_enemy()
@@ -91,10 +118,13 @@ public class game_manager : MonoBehaviour
         enemy_alive++;
     }
 
-    public static void Lose_live()
+    public static void Lose_live(Vector3 position)
     {
         instance.Lives--;
         Refresh_ui();
+        
+        instance.update_parameters(position);
+        AnalyticsEvent.LevelFail("level" + instance.lvl.ToString(), instance.parameters);
 
         if (instance.Lives <= 0)
         {
@@ -108,6 +138,15 @@ public class game_manager : MonoBehaviour
         instance.points += _points;
         Refresh_ui();
         instance.enemy_alive--;
+
+        if (instance.points % 1000 == 0)
+        {
+            AnalyticsEvent.Custom("enemies_destroyed", new Dictionary<string, object>{
+                { "enemies_destroyed", instance.points/100 },
+                { "time_elapsed", Time.timeSinceLevelLoad }
+            });
+
+        }
     }
 
     static void Refresh_ui()
@@ -126,9 +165,9 @@ public class game_manager : MonoBehaviour
                 instance.life3.enabled = false;
                 break;
         }
-
-        Debug.Log("level: " + instance.lvl.ToString());
+        
         int lvl = instance.lvl;
+        Debug.Log("level: " + lvl.ToString());
 
         for (int i=0; i < instance.Levels.Length; i++)
         {
@@ -178,6 +217,9 @@ public class game_manager : MonoBehaviour
         }
         else
         {
+            instance.update_parameters(new Vector3(0.0f, 0.0f, 0.0f));
+            AnalyticsEvent.LevelComplete("level" + instance.lvl.ToString(), instance.parameters);
+
             time_count = 0;
             congratulations.text += instance.points.ToString();
             congratulations.enabled = true;

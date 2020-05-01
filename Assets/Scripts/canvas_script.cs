@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.Analytics;
 
 public class canvas_script : MonoBehaviour {
 
@@ -32,6 +33,7 @@ public class canvas_script : MonoBehaviour {
 
         if (Input.anyKey)
         {
+            AnalyticsEvent.GameStart();
             start_sound.Play();
 
             coroutine = start_effect();
