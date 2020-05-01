@@ -6,8 +6,9 @@ using UnityEngine.SceneManagement;
 
 public class game_manager : MonoBehaviour
 {
-    public Image life1, life2, life3, level1, level2, level3, level4;
-    public Text score, game_over, success, ready;
+    public Image life1, life2, life3;
+    public Image[] Levels = new Image[9];
+    public Text score, game_over, success, ready, congratulations;
     public AudioClip lvl_sound, g_o_sound;
     public GameObject enemy;
     public static game_manager instance;
@@ -57,6 +58,8 @@ public class game_manager : MonoBehaviour
 
         Refresh_ui();
     }
+
+
 
     private void Update()
     {
@@ -124,17 +127,24 @@ public class game_manager : MonoBehaviour
                 break;
         }
 
-        switch (instance.lvl)
+        Debug.Log("level: " + instance.lvl.ToString());
+        int lvl = instance.lvl;
+
+        for (int i=0; i < instance.Levels.Length; i++)
         {
-            case 2:
-                instance.level2.enabled = true;
-                break;
-            case 3:
-                instance.level3.enabled = true;
-                break;
-            case 4:
-                instance.level4.enabled = true;
-                break;
+            instance.Levels[i].enabled = false;
+        }
+
+        int count = 4;
+        while (lvl>=5){
+            instance.Levels[count].enabled = true;
+            count++;
+            lvl-=5;
+        }
+
+        for (int i = 0; i < lvl; i ++)
+        {
+            instance.Levels[i].enabled = true;
         }
     }
 
@@ -155,14 +165,37 @@ public class game_manager : MonoBehaviour
         
         success.enabled = false;
 
-        instance.coroutine = instance.Ready(1f);
-        instance.StartCoroutine(instance.coroutine);
+        if (instance.lvl < 25)
+        {
+            instance.coroutine = instance.Ready(1f);
+            instance.StartCoroutine(instance.coroutine);
 
-        time_count = .5f;
-        diff -= next_lvl_diff;
-        enemy_spawns = next_round_spawn * lvl;
-        next_spawn = interval_spawn_max;
-        next_load = false;
+            time_count = .5f;
+            diff -= next_lvl_diff;
+            enemy_spawns = next_round_spawn * lvl;
+            next_spawn = interval_spawn_max;
+            next_load = false;
+        }
+        else
+        {
+            time_count = 0;
+            congratulations.text += instance.points.ToString();
+            congratulations.enabled = true;
+
+            while (time_count <= temp)
+            {
+                time_count += Time.deltaTime;
+                congratulations.color = Color.gray;
+                yield return new WaitForSeconds(.1f);
+                congratulations.color = Color.white;
+                yield return new WaitForSeconds(.1f);
+            }
+
+            congratulations.enabled = false;
+
+            instance.coroutine = instance.Load_Intro();
+            instance.StartCoroutine(instance.coroutine);
+        }
     }
 
     IEnumerator Ready(float t)

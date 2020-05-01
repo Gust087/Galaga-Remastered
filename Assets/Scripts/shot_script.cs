@@ -29,7 +29,7 @@ public class shot_script : MonoBehaviour {
 
         if (transform.position.y >= 5)
         {
-            gameObject.SetActive(false);
+            gameObject.SetActive(false);//Destroy(gameObject);
         }
     }
 

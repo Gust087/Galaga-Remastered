@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿    using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,8 +12,8 @@ public class Canvas_padre : MonoBehaviour {
         if (GetComponentInChildren<Text>().gameObject.tag == "start")
         {
             start = GetComponentInChildren<Text>();
+            //start.enabled = false;
         }
-        start.enabled = false;
 
         for (int i = 0; i < transform.childCount; i++)
         {

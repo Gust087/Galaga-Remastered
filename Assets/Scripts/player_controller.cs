@@ -5,35 +5,51 @@ using UnityEngine;
 public class player_controller : MonoBehaviour {
 
     public AudioClip explotion;
-    public GameObject shot;
-    List<shot_script> shot_list = new List<shot_script>();
-    public Transform shotSpawn;
-    public float fireRate;
     public Animator anim;
+
+    public float fireRate;
+    public Transform shotSpawn;
+    public GameObject shot;
 
     private IEnumerator coroutine;
 
-    private float nextFire;
-    private int cshot = 0;
-    private const int shot_max = 3;
     private bool is_dead = false;
     private float move_x;
     private float move_y;
 
-    // Use this for initialization
-    void Start ()
-    {
-        gameObject.SetActive(true);
-        for (int i = 0; i < shot_max; i++)
-        {
-            GameObject auxgo = Instantiate(shot, shotSpawn.position, shotSpawn.rotation);
-            shot_list.Add(auxgo.GetComponent<shot_script>());
-        }
+    List<shot_script> shot_list = new List<shot_script>();
 
+    private int cshot = 0;
+    private const int shot_max = 3;
+    private bool pause =  false;
+
+    float nextFire = 2f;
+
+
+    void Start()
+    {
+        delegate_handler.BtnOnPauseDelegate += OnPause;
+        Inicializa();
+        gameObject.SetActive(true);
+
+    }
+
+    private void OnDisable()
+    {
+        delegate_handler.BtnOnPauseDelegate -= OnPause;
+    }
+
+    private void OnPause(bool e)
+    {
+        pause = e;
     }
 
     private void FixedUpdate()
     {
+        if (pause) {
+            return;
+        }
+
         if (is_dead == false)
         {
             move_x = Input.GetAxis("Horizontal");
@@ -41,11 +57,7 @@ public class player_controller : MonoBehaviour {
 
             if (Input.GetKeyDown(KeyCode.Space) && Time.time > nextFire)
             {
-                if (cshot == shot_max) { cshot = 0; }
-                nextFire = Time.time + fireRate;
-                shot_list[cshot].transform.SetPositionAndRotation(shotSpawn.position, shotSpawn.rotation);
-                shot_list[cshot].gameObject.SetActive(true);
-                cshot++;
+                Shot();
             }
         }
         else
@@ -65,6 +77,7 @@ public class player_controller : MonoBehaviour {
         );
 
     }
+
     private void OnCollisionEnter2D(Collision2D collision)
     {
         is_dead = true;
@@ -83,6 +96,25 @@ public class player_controller : MonoBehaviour {
 
         coroutine = dead(4f);
         StartCoroutine(coroutine);
+    }
+    
+    void Inicializa()
+    {
+        for (int i = 0; i < shot_max; i++)
+        {
+            GameObject auxgo = Instantiate(shot, shotSpawn.position, shotSpawn.rotation);
+            shot_list.Add(auxgo.GetComponent<shot_script>());
+        }
+
+    }
+
+    void Shot()
+    {
+        if (cshot == shot_max) { cshot = 0; }
+        nextFire = Time.time + fireRate;
+        shot_list[cshot].transform.SetPositionAndRotation(shotSpawn.position, shotSpawn.rotation);
+        shot_list[cshot].gameObject.SetActive(true);
+        cshot++;
     }
 
     private IEnumerator dead(float waitTime)
